@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CleanRedact – Secure Client-Side PDF Redaction & Anonymizer</title>
+  <meta name="description" content="Anonymize and redact sensitive information from PDFs directly in your browser. Auto-detect IBANs, emails, numbers and blur faces offline." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c1917'/%3E%3Crect x='5.5' y='5.5' width='21' height='21' rx='4' fill='none' stroke='%23f5f5f4' stroke-width='2'/%3E%3Cline x1='10' y1='11' x2='22' y2='11' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='10' y='14.5' width='9' height='3.5' rx='1' fill='%23C8501F'/%3E%3Cline x1='10' y1='21.5' x2='16' y2='21.5' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="shortcut icon" href="./favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/app.css" />
+  <link rel="stylesheet" href="./css/transition.css" />
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- pdf-lib -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <!-- piexifjs (EXIF stripping) -->
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
+  <!-- Tesseract.js (OCR) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- TensorFlow.js + BlazeFace (Local Face Detection) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+  <!-- JSZip (Client-Side Batch Zip Creation) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- i18n MUST load before body renders -->
+  <script src="./js/i18n.js"></script>
+
+  <script>
+    // Configure PDF.js worker
+    if (window['pdfjs-dist/build/pdf']) {
+      window['pdfjs-dist/build/pdf'].GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+</head>
+<body>
+
+<!-- ================================================================
+     APP SHELL
+     ================================================================ -->
+<div class="app-layout">
+
+  <!-- ── Header ─────────────────────────────────────────────────── -->
+  <header class="app-header">
+
+    <a href="./index.html" class="header-logo" title="Back to home">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="3" stroke-width="2"/>
+        <line x1="8" y1="9" x2="16" y2="9"/>
+        <rect x="8" y="12" width="5" height="3" rx="1" fill="currentColor" stroke="none"/>
+      </svg>
+      CleanRedact
+    </a>
+
+    <div class="header-file">
+      <div class="header-divider"></div>
+      <span class="header-filename" id="header-filename"></span>
+      <span class="header-badge"   id="header-badge"></span>
+      <span class="header-counter"  id="page-counter"></span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-new" id="btn-new" data-i18n="app_new_file"></button>
+      <button class="btn-download" id="btn-download" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-i18n="app_download"></span>
+      </button>
+    </div>
+
+  </header>
+
+  <!-- ── Left Sidebar ───────────────────────────────────────────── -->
+  <aside class="app-sidebar" id="app-sidebar">
+
+    <div class="sidebar-body">
+      <!-- REDACT section -->
+      <div>
+        <div class="tool-section-title" data-i18n="app_tool_section_redact"></div>
+        <div class="tool-group">
+
+          <button class="tool-btn active" data-tool="draw" id="tool-draw">
+            <svg class="tool-icon" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"/>
+            </svg>
+            <span class="tool-label" data-i18n="app_tool_manual"></span>
+          </button>
+
+          <div class="tool-divider"></div>
+
+          <button class="tool-btn" data-tool="undo" id="tool-undo">
+            <svg class="tool-icon" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
+            <span class="tool-label" data-i18n="app_tool_undo"></span>
+          </button>
+
+          <button class="tool-btn" data-tool="clear" id="tool-clear">
+            <svg class="tool-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            <span class="tool-label" data-i18n="app_tool_clear"></span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- AUTO-SCAN section -->
+      <div>
+        <div class="tool-section-title" data-i18n="app_tool_section_auto"></div>
+        <div class="tool-group">
+
+          <button class="tool-btn" data-tool="iban" id="tool-iban">
+            <svg class="tool-icon" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span class="tool-label" data-i18n="app_tool_iban"></span>
+          </button>
+
+          <button class="tool-btn" data-tool="email" id="tool-email">
+            <svg class="tool-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span class="tool-label" data-i18n="app_tool_email"></span>
+          </button>
+
+          <button class="tool-btn" data-tool="amount" id="tool-amount">
+            <svg class="tool-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            <span class="tool-label" data-i18n="app_tool_amount"></span>
+          </button>
+
+          <button class="tool-btn" data-tool="all" id="tool-all" style="font-weight:600">
+            <svg class="tool-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="tool-label" data-i18n="app_tool_all"></span>
+          </button>
+
+          <button class="tool-btn" data-tool="face" id="tool-face">
+            <svg class="tool-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="tool-label" data-i18n="app_tool_face"></span>
+          </button>
+
+        </div>
+
+        <!-- Face Redaction Mode Options -->
+        <div class="face-mode-box">
+          <div class="face-mode-header">
+            <span class="face-mode-label" data-i18n="app_face_mode_label">Face Mode:</span>
+            <div class="face-mode-toggle" id="face-mode-toggle">
+              <button type="button" class="face-mode-btn active" data-mode="pixelate" id="face-mode-pixelate" data-i18n="app_face_mode_pixel">Pixelate</button>
+              <button type="button" class="face-mode-btn" data-mode="black" id="face-mode-black" data-i18n="app_face_mode_black">Black Box</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Word / Name Redaction -->
+        <div class="custom-redact-box">
+          <div class="custom-redact-input-row">
+            <input type="text" class="custom-redact-input" id="custom-redact-input"
+                   placeholder="Enter word or name..." data-i18n-attr="placeholder" data-i18n="app_custom_placeholder"
+                   aria-label="Enter word or name to redact" />
+            <button class="btn-custom-redact" id="btn-custom-redact" data-i18n="app_custom_btn">
+              Redact Word
+            </button>
+          </div>
+          <div class="custom-redact-feedback" id="custom-redact-feedback"></div>
+        </div>
+
+      </div>
+
+      <!-- METADATA section -->
+      <div class="sidebar-section-collapse">
+        <div class="tool-section-title" data-i18n="app_tool_section_meta"></div>
+        <p class="meta-info" id="meta-info-text"></p>
+        <button class="btn-strip-meta" id="btn-meta-strip" data-i18n="app_meta_btn"></button>
+      </div>
+    </div>
+
+    <!-- DOCKED SIDEBAR FOOTER: Sticky Zoom Controls with Editable Input & Legal Links -->
+    <div class="sidebar-footer">
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="btn-zoom-out" title="Zoom Out">−</button>
+        <input  type="text" class="zoom-input" id="zoom-input" value="100%" aria-label="Zoom percentage" title="Click to edit zoom" />
+        <button class="zoom-btn" id="btn-zoom-in" title="Zoom In">+</button>
+        <button class="zoom-btn" id="btn-zoom-fit" style="flex:1.5" data-i18n="app_zoom_fit"></button>
+      </div>
+      <div class="sidebar-legal-bar">
+        <a href="./privacy.html" class="sidebar-legal-btn" id="app-btn-privacy">Privacy</a>
+        <span class="sidebar-legal-dot">•</span>
+        <a href="./terms.html" class="sidebar-legal-btn" id="app-btn-terms">Terms & Legal</a>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main Canvas Area ───────────────────────────────────────── -->
+  <main class="app-main" id="app-main">
+
+    <!-- Drop Zone (visible before any file is loaded) -->
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-zone-card" role="button" tabindex="0" aria-label="Upload document">
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <polyline points="9 15 12 12 15 15"/>
+          </svg>
+        </div>
+        <p class="drop-title" data-i18n="app_drop_title"></p>
+        <p class="drop-sub"   data-i18n="app_drop_sub"></p>
+        <button class="btn-choose" data-i18n="app_drop_btn"></button>
+        <p class="drop-or" data-i18n="app_drop_or"></p>
+      </div>
+    </div>
+
+    <!-- Batch View (visible when multiple files are loaded) -->
+    <div class="batch-view" id="batch-view" style="display:none">
+      <div class="batch-header">
+        <div class="batch-title-area">
+          <h2 class="batch-title" data-i18n="app_batch_title">Batch Processing</h2>
+          <span class="batch-badge" id="batch-file-count">0 files</span>
+        </div>
+        <div class="batch-header-actions">
+          <button type="button" class="btn-batch-add" id="btn-batch-add-more">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span data-i18n="app_batch_add_more">Add Files</span>
+          </button>
+          <button type="button" class="btn-batch-cancel" id="btn-batch-clear" data-i18n="app_batch_clear">Clear All</button>
+        </div>
+      </div>
+
+      <!-- Batch Rules Configuration Card -->
+      <div class="batch-rules-card">
+        <div class="batch-rules-title" data-i18n="app_batch_rules_title">Apply Redaction Rules Across All Documents</div>
+        <div class="batch-rules-grid">
+          <label class="batch-rule-check">
+            <input type="checkbox" id="batch-rule-meta" checked />
+            <span class="batch-rule-box"></span>
+            <span class="batch-rule-text" data-i18n="app_batch_rule_meta">Strip All Metadata</span>
+          </label>
+          <label class="batch-rule-check">
+            <input type="checkbox" id="batch-rule-iban" checked />
+            <span class="batch-rule-box"></span>
+            <span class="batch-rule-text" data-i18n="app_batch_rule_iban">Auto-Redact IBANs</span>
+          </label>
+          <label class="batch-rule-check">
+            <input type="checkbox" id="batch-rule-email" checked />
+            <span class="batch-rule-box"></span>
+            <span class="batch-rule-text" data-i18n="app_batch_rule_email">Auto-Redact Emails & Phones</span>
+          </label>
+          <label class="batch-rule-check">
+            <input type="checkbox" id="batch-rule-amount" />
+            <span class="batch-rule-box"></span>
+            <span class="batch-rule-text" data-i18n="app_batch_rule_amount">Auto-Redact Amounts</span>
+          </label>
+          <label class="batch-rule-check">
+            <input type="checkbox" id="batch-rule-face" />
+            <span class="batch-rule-box"></span>
+            <span class="batch-rule-text" data-i18n="app_batch_rule_face">Blur / Redact Faces</span>
+          </label>
+        </div>
+
+        <div class="batch-custom-row">
+          <label for="batch-custom-word" class="batch-custom-label" data-i18n="app_batch_custom_label">Custom Word / Name:</label>
+          <input type="text" class="batch-custom-input" id="batch-custom-word" placeholder="Optional term (e.g. Confidential)" data-i18n-attr="placeholder" data-i18n="app_batch_custom_placeholder" />
+        </div>
+
+        <div class="batch-actions-row">
+          <button type="button" class="btn-process-batch" id="btn-process-batch">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="app_batch_btn_process">Process & Download All (ZIP)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Batch Progress Card -->
+      <div class="batch-progress-card" id="batch-progress-card" style="display:none">
+        <div class="batch-progress-header">
+          <span class="batch-progress-status" id="batch-progress-text">Processing file 1 of 8...</span>
+          <span class="batch-progress-percent" id="batch-progress-percent">0%</span>
+        </div>
+        <div class="batch-progress-bar-bg">
+          <div class="batch-progress-bar-fill" id="batch-progress-bar-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Document List Table -->
+      <div class="batch-table-container">
+        <table class="batch-table" id="batch-table">
+          <thead>
+            <tr>
+              <th data-i18n="app_batch_col_file">Document</th>
+              <th data-i18n="app_batch_col_size">Size</th>
+              <th data-i18n="app_batch_col_pages">Pages</th>
+              <th data-i18n="app_batch_col_status">Status</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="batch-table-body">
+            <!-- Injected dynamically by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Page canvases are injected here by app.js -->
+
+  </main>
+
+  <!-- ── Right Page Navigator ───────────────────────────────────── -->
+  <nav class="app-pages" id="app-pages" style="display:none" aria-label="Page navigator">
+    <!-- Thumbnails injected by app.js -->
+  </nav>
+
+</div><!-- .app-layout -->
+
+<!-- ================================================================
+     HIDDEN FILE INPUT
+     ================================================================ -->
+<input type="file" id="file-input" multiple accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+       style="display:none" aria-hidden="true" />
+
+<!-- ================================================================
+     LOADING OVERLAY
+     ================================================================ -->
+<div class="loading-overlay hidden" id="loading-overlay" aria-live="polite" aria-label="Processing">
+  <div class="spinner"></div>
+  <p class="loading-text" id="loading-text" data-i18n="app_processing"></p>
+</div>
+
+<!-- ================================================================
+     CONFIRM MODAL
+     ================================================================ -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <p  id="modal-msg"></p>
+    <div class="modal-actions">
+      <button class="modal-cancel"  id="modal-cancel"></button>
+      <button class="modal-confirm" id="modal-confirm"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     HINT BAR (bottom of canvas area)
+     ================================================================ -->
+<div class="hint-bar" id="hint-bar" aria-live="polite"></div>
+
+<!-- ================================================================
+     TOAST (injected by fileHandler.js)
+     ================================================================ -->
+
+<!-- ================================================================
+     LEGAL & PRIVACY MODAL
+     ================================================================ -->
+<div class="legal-modal-backdrop" id="legal-modal" role="dialog" aria-modal="true" style="display:none">
+  <div class="legal-modal-card">
+    <div class="legal-modal-header">
+      <div class="legal-modal-tabs">
+        <button type="button" class="legal-tab-btn active" id="tab-btn-privacy">Privacy Policy</button>
+        <button type="button" class="legal-tab-btn" id="tab-btn-terms">Impressum & Terms</button>
+      </div>
+      <button type="button" class="legal-modal-close" id="legal-modal-close" aria-label="Close modal">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="legal-modal-body">
+      <!-- Privacy Policy Section -->
+      <div class="legal-section active" id="legal-section-privacy">
+        <div class="legal-privacy-callout">
+          <span class="legal-callout-tag">Zero-Server Privacy Guarantee</span>
+          <p class="legal-callout-text">This tool processes all data purely client-side via JavaScript. No PDF or personal data is transmitted to external servers.</p>
+        </div>
+
+        <h3>1. Client-Side Processing Only</h3>
+        <p>CleanRedact operates entirely inside your local browser memory. When you select or drag a document into the app, it is loaded into an in-memory <code>ArrayBuffer</code> via the HTML5 FileReader API. At no point is any file, page, or extracted text sent across the network or uploaded to any cloud server.</p>
+
+        <h3>2. Local OCR & Facial AI</h3>
+        <p>Text pattern recognition (IBANs, emails, phone numbers, amounts) and face detection run locally using WebAssembly and client-side machine learning (Tesseract.js and TensorFlow.js BlazeFace). No document content, facial coordinates, or biometric information leaves your computer.</p>
+
+        <h3>3. Destructive Flattening</h3>
+        <p>Redactions are permanently burned into raw image pixels during the export process. The underlying vector text layer and all EXIF / document metadata (GPS coordinates, device serials, author history) are stripped completely so that no information can be recovered.</p>
+
+        <h3>4. Zero Tracking & No Cookies</h3>
+        <p>CleanRedact does not set tracking cookies, does not collect telemetry, and does not integrate third-party advertising or analytics networks.</p>
+
+        <h3>5. GDPR / DSGVO & Compliance</h3>
+        <p>Because zero personal data is transferred to or processed by our servers, CleanRedact naturally fulfills strict GDPR/DSGVO requirements (including Art. 25 Privacy by Design and Art. 32 Security of Processing) and is safe for use in confidential banking, medical, and legal environments.</p>
+      </div>
+
+      <!-- Impressum & Terms Section -->
+      <div class="legal-section" id="legal-section-terms" style="display:none">
+        <h3>Impressum (Legal Notice)</h3>
+        <p><strong>CleanRedact Project</strong><br>
+        Open-Source Privacy & Compliance Utility<br>
+        Web: <a href="./index.html">cleanredact.local</a><br>
+        Contact: privacy@cleanredact.local</p>
+
+        <h3>Terms of Use (Nutzungsbedingungen)</h3>
+        <p>By accessing or using CleanRedact, you agree to the following terms:</p>
+        <ul>
+          <li><strong>Purpose:</strong> CleanRedact is provided free of charge as a local client-side tool to assist in anonymizing documents before transmission.</li>
+          <li><strong>User Responsibility:</strong> Although CleanRedact irreversibly destroys covered text layers and strips metadata upon export, the user is responsible for reviewing and verifying the redacted output file prior to distributing it to third parties.</li>
+          <li><strong>No Warranty:</strong> The tool is provided "as is" without warranty of any kind, express or implied. We do not accept liability for any damages or unintentional leaks resulting from user oversight or misuse.</li>
+          <li><strong>Third-Party Components:</strong> CleanRedact uses open-source libraries (PDF.js under Apache 2.0, pdf-lib under MIT, TensorFlow.js under Apache 2.0, Tesseract.js under Apache 2.0, JSZip under MIT, piexifjs under MIT).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     APP SCRIPTS (ES Modules)
+     ================================================================ -->
+<script type="module" src="./js/app.js"></script>
+
+<!-- Page transition curtain: starts covering, then exits upward -->
+<div id="curtain" class="is-exiting"></div>
+<script>
+  // One rAF to ensure the browser has painted the covered state,
+  // then add .done to slide the curtain upward, revealing the page.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const c = document.getElementById('curtain');
+      c.classList.add('done');
+    });
+  });
+</script>
+
+</body>
+</html>
+

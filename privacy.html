@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy – CleanRedact</title>
+  <meta name="description" content="CleanRedact Privacy Policy. Purely client-side data processing via JavaScript. No PDF or personal data is transmitted to external servers." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c1917'/%3E%3Crect x='5.5' y='5.5' width='21' height='21' rx='4' fill='none' stroke='%23f5f5f4' stroke-width='2'/%3E%3Cline x1='10' y1='11' x2='22' y2='11' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='10' y='14.5' width='9' height='3.5' rx='1' fill='%23C8501F'/%3E%3Cline x1='10' y1='21.5' x2='16' y2='21.5' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="shortcut icon" href="./favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/style.css" />
+  <style>
+    .legal-page-wrap {
+      max-width: 760px;
+      margin: 40px auto;
+      padding: 0 20px 80px 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .legal-page-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 20px;
+      padding: 40px 48px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.06);
+    }
+    .legal-back-nav {
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .legal-back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--c-accent);
+      transition: opacity 0.15s;
+    }
+    .legal-back-link:hover { opacity: 0.8; }
+    .legal-page-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: var(--c-text);
+      margin-bottom: 8px;
+    }
+    .legal-page-subtitle {
+      font-size: 0.95rem;
+      color: var(--c-muted);
+      margin-bottom: 32px;
+    }
+    .legal-body-content {
+      font-size: 0.925rem;
+      line-height: 1.7;
+      color: #3f3f46;
+    }
+    .legal-body-content h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--c-text);
+      margin: 28px 0 10px 0;
+    }
+    .legal-body-content h3:first-of-type { margin-top: 0; }
+    .legal-body-content p { margin-bottom: 14px; }
+    .legal-body-content ul { padding-left: 24px; margin-bottom: 18px; }
+    .legal-body-content li { margin-bottom: 8px; }
+    @media (max-width: 600px) {
+      .legal-page-card { padding: 28px 20px; border-radius: 14px; }
+      .legal-page-title { font-size: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+
+<div class="legal-page-wrap">
+  <div class="legal-back-nav">
+    <a href="./index.html" class="logo">
+      <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="3"/>
+        <line x1="8" y1="8.5" x2="16" y2="8.5"/>
+        <rect x="8" y="12" width="5" height="2.5" rx="1" fill="currentColor" stroke="none"/>
+        <line x1="8" y1="17" x2="13" y2="17"/>
+      </svg>
+      CleanRedact
+    </a>
+    <a href="./index.html" class="legal-back-link">
+      ← Back to App
+    </a>
+  </div>
+
+  <div class="legal-page-card">
+    <h1 class="legal-page-title">Privacy Policy</h1>
+    <p class="legal-page-subtitle">Datenschutzerklärung — 100% Client-Side Architecture</p>
+
+    <div class="legal-privacy-callout">
+      <span class="legal-callout-tag">Zero-Server Privacy Guarantee</span>
+      <p class="legal-callout-text">This tool processes all data purely client-side via JavaScript. No PDF or personal data is transmitted to external servers.</p>
+    </div>
+
+    <div class="legal-body-content">
+      <h3>1. General Overview & Architecture</h3>
+      <p>CleanRedact operates on a zero-server principle. Unlike traditional online PDF editors or cloud conversion tools, CleanRedact executes 100% within your local browser sandbox memory using HTML5, WebAssembly, and client-side JavaScript. No document data, images, text layers, or personal identifiers are ever uploaded, transmitted, or stored on our or any third-party servers.</p>
+
+      <h3>2. Document Handling in Local Browser Memory</h3>
+      <p>When you drag & drop or select a document (PDF, PNG, JPG, or WEBP), it is read directly into your device's memory using the native HTML5 <code>FileReader</code> API as an in-memory <code>ArrayBuffer</code>. Your files are rendered to an HTML5 Canvas for editing. No network request (HTTP POST, WebSocket, or API call) containing your document data is ever dispatched.</p>
+
+      <h3>3. Optical Character Recognition (OCR) & AI Face Detection</h3>
+      <p>All automated scanning capabilities run entirely on your device:</p>
+      <ul>
+        <li><strong>OCR Text Detection:</strong> Powered by <code>Tesseract.js</code> running inside local browser Web Workers. Word coordinates and text patterns are identified locally in memory.</li>
+        <li><strong>Face Detection:</strong> Powered by <code>TensorFlow.js BlazeFace</code> running locally via WebGL/Wasm. Biometric contours and facial coordinates remain strictly in memory and are discarded immediately upon redaction.</li>
+      </ul>
+
+      <h3>4. Destructive Redaction & Permanent Anonymization</h3>
+      <p>CleanRedact ensures genuine destructive anonymization. Black boxes and pixelation are mathematically composited into the raw raster image pixels. During export, original vector text layers and invisible EXIF / PDF metadata (GPS locations, camera serials, creation timestamps, author names) are completely stripped.</p>
+
+      <h3>5. Cookies, Analytics & Third Parties</h3>
+      <p>CleanRedact does not use tracking cookies, does not use persistent local storage for identification, does not use Google Analytics or other telemetry services, and does not serve advertisements.</p>
+
+      <h3>6. GDPR / DSGVO & Secrecy Compliance</h3>
+      <p>CleanRedact fully complies with Art. 25 (Privacy by Design and by Default) and Art. 32 (Security of Processing) of the EU General Data Protection Regulation (GDPR). Because no transmission of personal data takes place, using CleanRedact does not constitute data processing by a third party, making it safely deployable for confidential legal, medical, banking, and HR documents.</p>
+
+      <h3>7. Questions & Contact</h3>
+      <p>If you have any questions regarding our client-side architecture or security design, please reach out via <a href="mailto:privacy@cleanredact.local" style="color:var(--c-accent);text-decoration:underline">privacy@cleanredact.local</a>.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

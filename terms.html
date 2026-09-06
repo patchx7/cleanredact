@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Impressum & Terms – CleanRedact</title>
+  <meta name="description" content="CleanRedact Legal Notice (Impressum) and Terms of Service. Secure client-side document redaction." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c1917'/%3E%3Crect x='5.5' y='5.5' width='21' height='21' rx='4' fill='none' stroke='%23f5f5f4' stroke-width='2'/%3E%3Cline x1='10' y1='11' x2='22' y2='11' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='10' y='14.5' width='9' height='3.5' rx='1' fill='%23C8501F'/%3E%3Cline x1='10' y1='21.5' x2='16' y2='21.5' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="shortcut icon" href="./favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/style.css" />
+  <style>
+    .legal-page-wrap {
+      max-width: 760px;
+      margin: 40px auto;
+      padding: 0 20px 80px 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .legal-page-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 20px;
+      padding: 40px 48px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.06);
+    }
+    .legal-back-nav {
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .legal-back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--c-accent);
+      transition: opacity 0.15s;
+    }
+    .legal-back-link:hover { opacity: 0.8; }
+    .legal-page-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: var(--c-text);
+      margin-bottom: 8px;
+    }
+    .legal-page-subtitle {
+      font-size: 0.95rem;
+      color: var(--c-muted);
+      margin-bottom: 32px;
+    }
+    .legal-body-content {
+      font-size: 0.925rem;
+      line-height: 1.7;
+      color: #3f3f46;
+    }
+    .legal-body-content h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--c-text);
+      margin: 28px 0 10px 0;
+    }
+    .legal-body-content h3:first-of-type { margin-top: 0; }
+    .legal-body-content p { margin-bottom: 14px; }
+    .legal-body-content ul { padding-left: 24px; margin-bottom: 18px; }
+    .legal-body-content li { margin-bottom: 8px; }
+    @media (max-width: 600px) {
+      .legal-page-card { padding: 28px 20px; border-radius: 14px; }
+      .legal-page-title { font-size: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+
+<div class="legal-page-wrap">
+  <div class="legal-back-nav">
+    <a href="./index.html" class="logo">
+      <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="3"/>
+        <line x1="8"  y1="8.5" x2="16" y2="8.5"/>
+        <rect x="8" y="12" width="5" height="2.5" rx="1" fill="currentColor" stroke="none"/>
+        <line x1="8"  y1="17" x2="13" y2="17"/>
+      </svg>
+      CleanRedact
+    </a>
+    <a href="./index.html" class="legal-back-link">
+      ← Back to App
+    </a>
+  </div>
+
+  <div class="legal-page-card">
+    <h1 class="legal-page-title">Impressum & Terms</h1>
+    <p class="legal-page-subtitle">Legal Notice & Terms of Service</p>
+
+    <div class="legal-body-content">
+      <h3>Impressum / Legal Notice</h3>
+      <p><strong>CleanRedact Project</strong><br>
+      A zero-server privacy initiative dedicated to local document redaction and data protection.<br>
+      Web: <a href="./index.html" style="color:var(--c-accent)">cleanredact.local</a><br>
+      Contact: privacy@cleanredact.local</p>
+
+      <h3>Terms of Use (Nutzungsbedingungen)</h3>
+      <p>Please read the following terms carefully before using CleanRedact:</p>
+      <ul>
+        <li><strong>Service Provision:</strong> CleanRedact is provided as a client-side document preparation utility. All operations take place locally on the user's terminal device without cloud server transmission.</li>
+        <li><strong>User Verification Responsibility:</strong> CleanRedact is engineered to physically flatten pixels and destroy invisible text layers. However, the user remains solely responsible for inspecting the exported files to ensure that all confidential, proprietary, or personal information has been completely obscured before public release or transfer.</li>
+        <li><strong>Disclaimer of Warranties:</strong> CleanRedact is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability.</li>
+        <li><strong>Third-Party Open-Source Credits:</strong> CleanRedact relies on open-source libraries licensed under permissive standards:
+          <ul>
+            <li><strong>PDF.js</strong> (Mozilla, Apache 2.0 License)</li>
+            <li><strong>pdf-lib</strong> (Hopding, MIT License)</li>
+            <li><strong>TensorFlow.js & BlazeFace</strong> (Google LLC, Apache 2.0 License)</li>
+            <li><strong>Tesseract.js</strong> (Naptha, Apache 2.0 License)</li>
+            <li><strong>JSZip</strong> (Stuk, MIT License)</li>
+            <li><strong>piexifjs</strong> (hMatoba, MIT License)</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

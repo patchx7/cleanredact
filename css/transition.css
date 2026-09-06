@@ -1,0 +1,28 @@
+/* ============================================================
+   CleanRedact — transition.css
+   Shared page curtain — loaded by both index.html and app.html
+   ============================================================ */
+
+#curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #111110;
+  transform: translateY(102%);
+  transition: transform 0.72s cubic-bezier(0.76, 0, 0.24, 1);
+  pointer-events: none;
+}
+
+/* index.html exit: curtain rises from below to cover viewport */
+#curtain.is-entering {
+  transform: translateY(0);
+}
+
+/* app.html enter: curtain begins fully covering, then .done slides it away */
+#curtain.is-exiting {
+  transform: translateY(0);
+  transition: transform 0.78s cubic-bezier(0.76, 0, 0.24, 1);
+}
+#curtain.is-exiting.done {
+  transform: translateY(-102%);
+}
